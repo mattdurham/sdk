@@ -38,6 +38,8 @@ const (
 	RowType
 	BarGaugeType
 	HeatmapType
+	GaugeType
+	TimeSeriesType
 )
 
 const MixedSource = "-- Mixed --"
@@ -59,6 +61,8 @@ type (
 		*AlertlistPanel
 		*BarGaugePanel
 		*HeatmapPanel
+		*GaugePanel
+		*TimeSeriesPanel
 		*CustomPanel
 	}
 	panelType   int8
@@ -357,6 +361,149 @@ type (
 		YBucketBound  string   `json:"yBucketBound"`
 		YBucketNumber *float64 `json:"yBucketNumber"`
 		YBucketSize   *float64 `json:"yBucketSize"`
+	}
+	GaugePanel struct {
+		AliasColors struct {
+		} `json:"aliasColors"`
+		Bars        bool   `json:"bars"`
+		DashLength  int    `json:"dashLength"`
+		Dashes      bool   `json:"dashes"`
+		Datasource  string `json:"datasource"`
+		FieldConfig struct {
+			Defaults struct {
+				Unit string `json:"unit"`
+			} `json:"defaults"`
+		} `json:"fieldConfig"`
+		Fill   int    `json:"fill"`
+		Format string `json:"format"`
+		Legend struct {
+			Avg     bool `json:"avg"`
+			Current bool `json:"current"`
+			Max     bool `json:"max"`
+			Min     bool `json:"min"`
+			Show    bool `json:"show"`
+			Total   bool `json:"total"`
+			Values  bool `json:"values"`
+		} `json:"legend"`
+		Lines           bool          `json:"lines"`
+		Linewidth       int           `json:"linewidth"`
+		Links           []interface{} `json:"links"`
+		NullPointMode   string        `json:"nullPointMode"`
+		Percentage      bool          `json:"percentage"`
+		Pointradius     int           `json:"pointradius"`
+		Points          bool          `json:"points"`
+		Renderer        string        `json:"renderer"`
+		SeriesOverrides []interface{} `json:"seriesOverrides"`
+		SpaceLength     int           `json:"spaceLength"`
+		Span            int           `json:"span"`
+		Stack           bool          `json:"stack"`
+		SteppedLine     bool          `json:"steppedLine"`
+		Targets         []struct {
+			Expr           string `json:"expr"`
+			Format         string `json:"format"`
+			Instant        bool   `json:"instant"`
+			IntervalFactor int    `json:"intervalFactor"`
+			LegendFormat   string `json:"legendFormat"`
+			RefID          string `json:"refId"`
+		} `json:"targets"`
+		Thresholds string      `json:"thresholds"`
+		TimeFrom   interface{} `json:"timeFrom"`
+		TimeShift  interface{} `json:"timeShift"`
+		Title      string      `json:"title"`
+		Tooltip    struct {
+			Shared    bool   `json:"shared"`
+			Sort      int    `json:"sort"`
+			ValueType string `json:"value_type"`
+		} `json:"tooltip"`
+		Type  string `json:"type"`
+		Xaxis struct {
+			Buckets interface{}   `json:"buckets"`
+			Mode    string        `json:"mode"`
+			Name    interface{}   `json:"name"`
+			Show    bool          `json:"show"`
+			Values  []interface{} `json:"values"`
+		} `json:"xaxis"`
+		Yaxes []struct {
+			Format  string      `json:"format"`
+			Label   interface{} `json:"label"`
+			LogBase int         `json:"logBase"`
+			Max     interface{} `json:"max"`
+			Min     int         `json:"min"`
+			Show    bool        `json:"show"`
+		} `json:"yaxes"`
+	}
+	TimeSeriesPanel struct {
+		Datasource  string `json:"datasource"`
+		FieldConfig struct {
+			Defaults struct {
+				Color struct {
+					Mode string `json:"mode"`
+				} `json:"color"`
+				Custom struct {
+					AxisLabel     string `json:"axisLabel"`
+					AxisPlacement string `json:"axisPlacement"`
+					BarAlignment  int    `json:"barAlignment"`
+					DrawStyle     string `json:"drawStyle"`
+					FillOpacity   int    `json:"fillOpacity"`
+					GradientMode  string `json:"gradientMode"`
+					HideFrom      struct {
+						Legend  bool `json:"legend"`
+						Tooltip bool `json:"tooltip"`
+						Viz     bool `json:"viz"`
+					} `json:"hideFrom"`
+					LineInterpolation string `json:"lineInterpolation"`
+					LineWidth         int    `json:"lineWidth"`
+					PointSize         int    `json:"pointSize"`
+					ScaleDistribution struct {
+						Type string `json:"type"`
+					} `json:"scaleDistribution"`
+					ShowPoints string `json:"showPoints"`
+					SpanNulls  bool   `json:"spanNulls"`
+					Stacking   struct {
+						Group string `json:"group"`
+						Mode  string `json:"mode"`
+					} `json:"stacking"`
+					ThresholdsStyle struct {
+						Mode string `json:"mode"`
+					} `json:"thresholdsStyle"`
+				} `json:"custom"`
+				Mappings   []interface{} `json:"mappings"`
+				Thresholds struct {
+					Mode  string `json:"mode"`
+					Steps []struct {
+						Color string      `json:"color"`
+						Value interface{} `json:"value"`
+					} `json:"steps"`
+				} `json:"thresholds"`
+			} `json:"defaults"`
+			Overrides []interface{} `json:"overrides"`
+		} `json:"fieldConfig"`
+		GridPos struct {
+			H int `json:"h"`
+			W int `json:"w"`
+			X int `json:"x"`
+			Y int `json:"y"`
+		} `json:"gridPos"`
+		Options struct {
+			Legend struct {
+				Calcs       []interface{} `json:"calcs"`
+				DisplayMode string        `json:"displayMode"`
+				Placement   string        `json:"placement"`
+			} `json:"legend"`
+			Tooltip struct {
+				Mode string `json:"mode"`
+			} `json:"tooltip"`
+		} `json:"options"`
+		Targets []struct {
+			Exemplar     bool   `json:"exemplar"`
+			Expr         string `json:"expr"`
+			Interval     string `json:"interval"`
+			LegendFormat string `json:"legendFormat"`
+			QueryType    string `json:"queryType"`
+			RefID        string `json:"refId"`
+		} `json:"targets"`
+		Title string `json:"title"`
+		Type  string `json:"type"`
 	}
 	CustomPanel map[string]interface{}
 )
@@ -972,6 +1119,18 @@ func (p *Panel) UnmarshalJSON(b []byte) (err error) {
 			p.OfType = RowType
 			if err = json.Unmarshal(b, &rowpanel); err == nil {
 				p.RowPanel = &rowpanel
+			}
+		case "gauge":
+			var gaugepanel GaugePanel
+			p.OfType = GaugeType
+			if err = json.Unmarshal(b, &gaugepanel); err == nil {
+				p.GaugePanel = &gaugepanel
+			}
+		case "timeseries":
+			var timeseries TimeSeriesPanel
+			p.OfType = TimeSeriesType
+			if err = json.Unmarshal(b, &timeseries); err == nil {
+				p.TimeSeriesPanel = &timeseries
 			}
 		default:
 			var custom = make(CustomPanel)
