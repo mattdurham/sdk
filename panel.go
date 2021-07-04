@@ -409,7 +409,6 @@ type (
 		Thresholds string      `json:"thresholds"`
 		TimeFrom   interface{} `json:"timeFrom"`
 		TimeShift  interface{} `json:"timeShift"`
-		Title      string      `json:"title"`
 		Tooltip    struct {
 			Shared    bool   `json:"shared"`
 			Sort      int    `json:"sort"`
@@ -502,8 +501,7 @@ type (
 			QueryType    string `json:"queryType"`
 			RefID        string `json:"refId"`
 		} `json:"targets"`
-		Title string `json:"title"`
-		Type  string `json:"type"`
+		Type string `json:"type"`
 	}
 	CustomPanel map[string]interface{}
 )
